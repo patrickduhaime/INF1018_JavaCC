@@ -57,7 +57,6 @@ import java.util.Stack;
 import java.util.List;
 import java.util.Scanner;
 
-
 public class JavaParser
 {
 	private static Stack<Element> pile = new Stack<Element>();
@@ -149,15 +148,15 @@ public class JavaParser
 
 		analyse();
 	}
-	
+
 	private static String getFileExtension(File file) {
-    String name = file.getName();
-    int lastIndexOf = name.lastIndexOf(".");
-    if (lastIndexOf == -1) {
-        return ""; // empty extension
-    }
-    return name.substring(lastIndexOf);
-}
+	    String name = file.getName();
+	    int lastIndexOf = name.lastIndexOf(".");
+	    if (lastIndexOf == -1) {
+	        return ""; // empty extension
+	    }
+	    return name.substring(lastIndexOf);
+	}
 
 	private static void parseDirectory(String path) {
 
@@ -165,7 +164,7 @@ public class JavaParser
 		File[] listOfFiles = folder.listFiles();
 		try {
 			for (int i = 0; i < listOfFiles.length; i++) {
-				if (listOfFiles[i].isFile()&& getFileExtension(listOfFiles[i]) == ".java")
+				 if (listOfFiles[i].isFile()&& getFileExtension(listOfFiles[i]).equals(".java"))
 	    			parsers.add(new JavaParser(new java.io.FileInputStream(path + "\\" + listOfFiles[i].getName())));
 	  		 	else if (listOfFiles[i].isDirectory()) 
 	    			parseDirectory(path + "\\" + listOfFiles[i].getName());
@@ -760,7 +759,15 @@ void ClassOrInterfaceDeclaration():
       [ ImplementsList() ]
       ClassOrInterfaceBody()
       
-		{pile.pop();}
+      
+		{
+		if(!pile.empty())
+			{
+				pile.pop();
+			}
+			else
+				System.out.println("la pile est vide, ClassOrInterfaceDeclaration line 769");
+		}
 	
       /* danson, added this check for trailing semi-colon.  Apparently, this has been
       legal since the beginning of Java, some sort of a C hold-over.  Sun's latest
@@ -960,14 +967,17 @@ void VariableDeclarator():
 	         	listAttributs.add(a);
 	         	lastModifier = null;
 
-				if(pile.peek().getClass().getName() == "astMaison.Classe")
-          		{
-					Classe lastClasse = (Classe) pile.peek();
-					lastClasse.getAttributes().add(a);
-				} else {
-					Methode lastMethode = (Methode) pile.peek();
-					lastMethode.getVariables().add(a);
-				}
+				if(!pile.empty())
+				{
+					if(pile.peek().getClass().getName() == "astMaison.Classe")
+	          		{
+						Classe lastClasse = (Classe) pile.peek();
+						lastClasse.getAttributes().add(a);
+					} else {
+						Methode lastMethode = (Methode) pile.peek();
+						lastMethode.getVariables().add(a);
+					}
+				}	
         }
 }
 
@@ -1015,7 +1025,14 @@ void MethodDeclaration():
           MethodDeclarator() [ "throws" NameList() ]
           ( Block() | ";" )
 
-			{pile.pop();}
+			{
+			if(!pile.empty())
+				{
+					pile.pop();
+				}
+				else
+					System.out.println("pile vide, MethodDeclaration line 1031");
+			}
           
         )
 }
@@ -1080,14 +1097,19 @@ void FormalParameter():
          	listAttributs.add(a);
          	lastModifier = null;
 	         	
-			if(pile.peek().getClass().getName() == "astMaison.Classe")
-      		{
-				Classe lastClasse = (Classe) pile.peek();
-				lastClasse.getAttributes().add(a);
-			} else {
-				Methode lastMethode = (Methode) pile.peek();
-				lastMethode.getVariables().add(a);
+			if(!pile.empty())
+			{
+				if(pile.peek().getClass().getName() == "astMaison.Classe")
+	      		{
+					Classe lastClasse = (Classe) pile.peek();
+					lastClasse.getAttributes().add(a);
+				} else {
+					Methode lastMethode = (Methode) pile.peek();
+					lastMethode.getVariables().add(a);
+				}
 			}
+			else
+				System.out.println("pile vide");
       	}
       )
 }
