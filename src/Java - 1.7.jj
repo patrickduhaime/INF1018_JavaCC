@@ -766,7 +766,7 @@ void ClassOrInterfaceDeclaration():
 				pile.pop();
 			}
 			else
-				System.out.println("la pile est vide, ClassOrInterfaceDeclaration line 769");
+				System.out.println("pile vide, ClassOrInterfaceDeclaration line 769");
 		}
 	
       /* danson, added this check for trailing semi-colon.  Apparently, this has been
@@ -785,13 +785,22 @@ void ExtendsList():
        "extends" ClassOrInterfaceType()
        {
         listInheritance.add(lastReference.toString());
-		Classe lastClasse = (Classe) pile.peek();
-		lastClasse.getHeritage().add(lastReference.toString());	
+        if(!pile.empty())
+			{
+				Classe lastClasse = (Classe) pile.peek();
+				lastClasse.getHeritage().add(lastReference.toString());	
+			}
+			else
+				System.out.println("pile vide, ExtendsList line 788");
        }
        ( "," ClassOrInterfaceType()
        {
          listInheritance.add(lastReference.toString());
-		 lastClasse.getHeritage().add(lastReference.toString());	
+         if(!pile.empty())
+			{
+				Classe lastClasse = (Classe) pile.peek();
+		 		lastClasse.getHeritage().add(lastReference.toString());	
+		 	}
        })*
 
 }
@@ -977,7 +986,9 @@ void VariableDeclarator():
 						Methode lastMethode = (Methode) pile.peek();
 						lastMethode.getVariables().add(a);
 					}
-				}	
+				}
+				else
+					System.out.println("pile vide, VariableDeclarator line 970");
         }
 }
 
@@ -1046,9 +1057,20 @@ void MethodDeclarator():
             lastId = <IDENTIFIER>
             {
               	Methode m = new Methode(lastId.toString());
-              	Classe lastClasse = (Classe) pile.peek();
-				lastClasse.getMethodes().add(m);
-              	pile.push(m);
+              	try
+              	{
+              		if(!pile.empty())
+              		{
+		              	Classe lastClasse = (Classe) pile.peek();
+		          		lastClasse.getMethodes().add(m);
+		              	pile.push(m);
+					}
+					else
+						System.out.println("pile vide, MethodDeclarator line 1053");
+				}
+				catch(java.lang.ClassCastException e)
+				{System.out.println(e);}
+
             }
             FormalParameters() ( "[" "]" )*
         )
@@ -1109,7 +1131,7 @@ void FormalParameter():
 				}
 			}
 			else
-				System.out.println("pile vide");
+				System.out.println("pile vide, FormalParameter line 1111");
       	}
       )
 }
