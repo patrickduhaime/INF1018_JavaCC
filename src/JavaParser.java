@@ -7,6 +7,8 @@ import astMaison.*;
 import java.util.Stack;
 import java.util.List;
 import java.util.Scanner;
+import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
 
 public class JavaParser implements JavaParserConstants {
         private static Stack<Element> pile = new Stack<Element>();
@@ -14,6 +16,8 @@ public class JavaParser implements JavaParserConstants {
         private static ArrayList<Classe> listClasses = new ArrayList<Classe>();
         private static ArrayList<Attribut> listAttributs = new ArrayList<Attribut>();
         private static ArrayList<String> listInheritance = new ArrayList<String >();
+        private static PrintWriter writer;
+
 
         private static Token lastModifier, lastId, lastReference;
 
@@ -77,6 +81,18 @@ public class JavaParser implements JavaParserConstants {
         } else if (args.length == 1) {
                 System.out.println("Java Parser Version 1.7:  Reading from file " + args[0] + "...");
                         path = args[0];
+                        String fileName = path.substring(path.lastIndexOf("/")+1);
+            try {
+                     DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
+                             LocalDateTime now = LocalDateTime.now();
+                                 writer = new PrintWriter(fileName + "-" + dtf.format(now), "UTF-8");
+                                } catch (FileNotFoundException e) {
+                                        // TODO Auto-generated catch block
+                                        e.printStackTrace();
+                                } catch (UnsupportedEncodingException e) {
+                                        // TODO Auto-generated catch block
+                                        e.printStackTrace();
+                                }
         } else {
                 System.out.println("Java Parser Version 1.7:  Usage is one of:");
                 System.out.println("         java JavaParser < inputfile");
@@ -120,7 +136,7 @@ public class JavaParser implements JavaParserConstants {
                                 parseDirectory(path + "\u005c\u005c" + listOfFiles[i].getName());
                         }
                 } catch (java.io.FileNotFoundException e) {
-                System.out.println("Java Parser Version 1.7:  File " + path + " not found.");
+                writer.println("Java Parser Version 1.7:  File " + path + " not found.");
         }
         }
 
@@ -132,14 +148,14 @@ public class JavaParser implements JavaParserConstants {
                         int pubAtt = 0, proAtt = 0, priAtt = 0, simAtt = 0, refAtt = 0;
                         String visi = "", type = "";
 
-                        System.out.println("\u005cnVoici les informations sur la classe \u005c"" + currentClasse.getId() + "\u005c".");
+                        writer.println("\u005cnVoici les informations sur la classe \u005c"" + currentClasse.getId() + "\u005c".");
 
                         for(int j = 0 ; j < currentClasse.getAttributes().size() ; j++){
                                 Attribut currentAttribut = currentClasse.getAttributes().get(j);
                                 visi = currentAttribut.getVisibilite();
                                 type = currentAttribut.getType();
 
-                                System.out.println("L'attribut \u005c""+ currentAttribut.getId() + "\u005c" est " + visi + " et de type " + type + ".");
+                                writer.println("L'attribut \u005c""+ currentAttribut.getId() + "\u005c" est " + visi + " et de type " + type + ".");
 
                                 if(visi.equals("private"))
                                         priAtt++;
@@ -156,27 +172,27 @@ public class JavaParser implements JavaParserConstants {
                         }
 
                         if(currentClasse.getAttributes().size() != 0) {
-                                System.out.println("Le pourcentage d'attributs public est de " + (float) pubAtt/currentClasse.getAttributes().size()*100 + ".");
-                                System.out.println("Le pourcentage d'attributs protected est de " + (float) proAtt/currentClasse.getAttributes().size()*100 + ".");
-                                System.out.println("Le pourcentage d'attributs private est de " + (float) priAtt/currentClasse.getAttributes().size()*100 + ".");
+                                writer.println("Le pourcentage d'attributs public est de " + (float) pubAtt/currentClasse.getAttributes().size()*100 + ".");
+                                writer.println("Le pourcentage d'attributs protected est de " + (float) proAtt/currentClasse.getAttributes().size()*100 + ".");
+                                writer.println("Le pourcentage d'attributs private est de " + (float) priAtt/currentClasse.getAttributes().size()*100 + ".");
 
-                                System.out.println("Le pourcentage d'attributs simple est de " + (float) simAtt/currentClasse.getAttributes().size()*100);
-                                System.out.println("Le pourcentage d'attributs reference est de " + (float) refAtt/currentClasse.getAttributes().size()*100);
+                                writer.println("Le pourcentage d'attributs simple est de " + (float) simAtt/currentClasse.getAttributes().size()*100);
+                                writer.println("Le pourcentage d'attributs reference est de " + (float) refAtt/currentClasse.getAttributes().size()*100);
 
                         }else
-                                System.out.println("Cette classe ne contient aucun attribut.");
+                                writer.println("Cette classe ne contient aucun attribut.");
 
 
                         if(currentClasse.getHeritage().size() == 0)
-                                System.out.println("H\u00e9ritage : Cette classe n'h\u00e9rite d'aucune classe.");
+                                writer.println("H\u00e9ritage : Cette classe n'h\u00e9rite d'aucune classe.");
                         else {
-                                System.out.print("H\u00e9ritage : La classe h\u00e9rite de la/les classe(s) ");
+                                writer.print("H\u00e9ritage : La classe h\u00e9rite de la/les classe(s) ");
                                 for(int j = 0 ; j < currentClasse.getHeritage().size() ; j++)
-                                        System.out.print(j + ") " + currentClasse.getHeritage().get(j) + " ");
-                                System.out.println();
+                                        writer.print(j + ") " + currentClasse.getHeritage().get(j) + " ");
+                                writer.println();
                         }
 
-                        System.out.println("Association :");
+                        writer.println("Association :");
                         Boolean heritage = false;
                         for(int j = 0 ; j < currentClasse.getMethodes().size() ; j++){
                                 Methode currentMethode = currentClasse.getMethodes().get(j);
@@ -184,12 +200,12 @@ public class JavaParser implements JavaParserConstants {
                                   Attribut att = currentMethode.getVariables().get(k);
                                   if(att.getType() == "reference") {
                                     heritage = true;
-                                        System.out.println(currentMethode.getId() + " poss\u00e8de une r\u00e9f\u00e9rence vers la classe " + att.getNomType());
+                                        writer.println(currentMethode.getId() + " poss\u00e8de une r\u00e9f\u00e9rence vers la classe " + att.getNomType());
                                         }
                                 }
                         }
                         if(!heritage)
-                                System.out.println("Aucune association :");
+                                writer.println("Aucune association :");
 
 
 
@@ -208,7 +224,7 @@ public class JavaParser implements JavaParserConstants {
 		for(int i = 0 ; i < listAttributs.size() ; i++)
 		{
 		  	visi = listAttributs.get(i).getVisibilite();
-			System.out.println("The visibility of the attribute \"" + listAttributs.get(i).getId() + "\" is " + visi + ".");
+			writer.println("The visibility of the attribute \"" + listAttributs.get(i).getId() + "\" is " + visi + ".");
 
 			if(visi.equals("private"))
 				priAtt++;
@@ -217,9 +233,9 @@ public class JavaParser implements JavaParserConstants {
 			else
 				pubAtt++;	
 		}
-		System.out.println("Le pourcentage d'attributs public est de " + (float) pubAtt/listAttributs.size()*100);
-		System.out.println("Le pourcentage d'attributs protected est de " + (float) proAtt/listAttributs.size()*100);
-		System.out.println("Le pourcentage d'attributs private est de " + (float) priAtt/listAttributs.size()*100);
+		writer.println("Le pourcentage d'attributs public est de " + (float) pubAtt/listAttributs.size()*100);
+		writer.println("Le pourcentage d'attributs protected est de " + (float) proAtt/listAttributs.size()*100);
+		writer.println("Le pourcentage d'attributs private est de " + (float) priAtt/listAttributs.size()*100);
 
 		//QUESTION 2 a : Type
 		int simAtt = 0, refAtt = 0;
@@ -227,39 +243,39 @@ public class JavaParser implements JavaParserConstants {
 		for(int i = 0 ; i < listAttributs.size() ; i++)
 		{
 		  	type = listAttributs.get(i).getType();
-			System.out.println("The type of the attribute \"" + listAttributs.get(i).getId() + "\" is " + type + ".");
+			writer.println("The type of the attribute \"" + listAttributs.get(i).getId() + "\" is " + type + ".");
 
 			if(type.equals("simple"))
 				simAtt++;
 			else 
 				refAtt++;	
 		}
-		System.out.println("Le pourcentage d'attributs simple est de " + (float) simAtt/listAttributs.size()*100);
-		System.out.println("Le pourcentage d'attributs reference est de " + (float) refAtt/listAttributs.size()*100);
+		writer.println("Le pourcentage d'attributs simple est de " + (float) simAtt/listAttributs.size()*100);
+		writer.println("Le pourcentage d'attributs reference est de " + (float) refAtt/listAttributs.size()*100);
 
 		//QUESTION 2 b : Type
     	for(int i = 0 ; i < listClasses.size() ; i++) {
-			System.out.println("The name of the class number " + i + " is " + listClasses.get(i).getId() + ".");
-			System.out.println("Cette classe voit les classes suivantes : ");
+			writer.println("The name of the class number " + i + " is " + listClasses.get(i).getId() + ".");
+			writer.println("Cette classe voit les classes suivantes : ");
 			for(int j = 0 ; j < listClasses.get(i).getAttributes().size() ; j++) {
-			  	System.out.println(listClasses.get(i).getAttributes().get(j).getId());
+			  	writer.println(listClasses.get(i).getAttributes().get(j).getId());
     		}	
 		}
 
 		//QUESTION 3 a : UML
 
 		for(int i = 0 ; i < listInheritance.size() ; i++) {
-			System.out.println("Hello  " + listInheritance.get(i) + ".");
+			writer.println("Hello  " + listInheritance.get(i) + ".");
 		}
 
 		//QUESTION 3 b : UML
 
 		for(int i = 0 ; i < listClasses.size() ; i++) {
-			System.out.println("The name of the class number " + i + " is " + listClasses.get(i).getId() + ".");
-			System.out.println("Cette classe voit les classes suivantes : ");
+			writer.println("The name of the class number " + i + " is " + listClasses.get(i).getId() + ".");
+			writer.println("Cette classe voit les classes suivantes : ");
 			for(int j = 0 ; j < listClasses.get(i).getAttributes().size() ; j++) {
 			  if(listClasses.get(i).getAttributes().get(j).getType() == "reference")
-			  	System.out.println(listClasses.get(i).getAttributes().get(j).getId());
+			  	writer.println(listClasses.get(i).getAttributes().get(j).getId());
     		}	
 		}
 	*/
@@ -513,7 +529,7 @@ public class JavaParser implements JavaParserConstants {
                                 pile.pop();
                         }
                         else
-                                System.out.println("pile vide, ClassOrInterfaceDeclaration line 769");
+                                writer.println("pile vide, ClassOrInterfaceDeclaration line 769");
     if (jj_2_4(2)) {
       jj_consume_token(SEMICOLON);
     } else {
@@ -531,7 +547,7 @@ public class JavaParser implements JavaParserConstants {
                                 lastClasse.getHeritage().add(lastReference.toString());
                         }
                         else
-                                System.out.println("pile vide, ExtendsList line 788");
+                                writer.println("pile vide, ExtendsList line 788");
     label_4:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -909,7 +925,7 @@ public class JavaParser implements JavaParserConstants {
                                         }
                                 }
                                 else
-                                        System.out.println("pile vide, VariableDeclarator line 970");
+                                        writer.println("pile vide, VariableDeclarator line 970");
   }
 
   final public void VariableDeclaratorId() throws ParseException {
@@ -1065,7 +1081,7 @@ public class JavaParser implements JavaParserConstants {
                                         pile.pop();
                                 }
                                 else
-                                        System.out.println("pile vide, MethodDeclaration line 1031");
+                                        writer.println("pile vide, MethodDeclaration line 1031");
   }
 
   final public void MethodDeclarator() throws ParseException {
@@ -1080,10 +1096,10 @@ public class JavaParser implements JavaParserConstants {
                                 pile.push(m);
                                         }
                                         else
-                                                System.out.println("pile vide, MethodDeclarator line 1053");
+                                                writer.println("pile vide, MethodDeclarator line 1053");
                                 }
                                 catch(java.lang.ClassCastException e)
-                                {System.out.println(e);}
+                                {writer.println(e);}
     FormalParameters();
     label_14:
     while (true) {
@@ -1177,7 +1193,7 @@ public class JavaParser implements JavaParserConstants {
                                 }
                         }
                         else
-                                System.out.println("pile vide, FormalParameter line 1111");
+                                writer.println("pile vide, FormalParameter line 1111");
   }
 
   final public void ConstructorDeclaration() throws ParseException {
@@ -4091,82 +4107,6 @@ public class JavaParser implements JavaParserConstants {
     finally { jj_save(59, xla); }
   }
 
-  private boolean jj_3R_86() {
-    if (jj_3R_90()) return true;
-    return false;
-  }
-
-  private boolean jj_3_29() {
-    if (jj_scan_token(LPAREN)) return true;
-    if (jj_3R_54()) return true;
-    if (jj_scan_token(LBRACKET)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_278() {
-    if (jj_3R_60()) return true;
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_295()) jj_scanpos = xsp;
-    return false;
-  }
-
-  private boolean jj_3R_85() {
-    if (jj_scan_token(CLASS)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_51() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_85()) {
-    jj_scanpos = xsp;
-    if (jj_scan_token(41)) return true;
-    }
-    if (jj_scan_token(IDENTIFIER)) return true;
-    xsp = jj_scanpos;
-    if (jj_3R_86()) jj_scanpos = xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_87()) jj_scanpos = xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_88()) jj_scanpos = xsp;
-    if (jj_3R_89()) return true;
-    xsp = jj_scanpos;
-    if (jj_3_4()) jj_scanpos = xsp;
-    return false;
-  }
-
-  private boolean jj_3R_105() {
-    if (jj_scan_token(LPAREN)) return true;
-    if (jj_3R_54()) return true;
-    if (jj_scan_token(RPAREN)) return true;
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_scan_token(91)) {
-    jj_scanpos = xsp;
-    if (jj_scan_token(90)) {
-    jj_scanpos = xsp;
-    if (jj_scan_token(78)) {
-    jj_scanpos = xsp;
-    if (jj_scan_token(75)) {
-    jj_scanpos = xsp;
-    if (jj_scan_token(57)) {
-    jj_scanpos = xsp;
-    if (jj_scan_token(54)) {
-    jj_scanpos = xsp;
-    if (jj_scan_token(44)) {
-    jj_scanpos = xsp;
-    if (jj_3R_148()) return true;
-    }
-    }
-    }
-    }
-    }
-    }
-    }
-    return false;
-  }
-
   private boolean jj_3R_104() {
     if (jj_scan_token(LPAREN)) return true;
     if (jj_3R_54()) return true;
@@ -6813,6 +6753,82 @@ public class JavaParser implements JavaParserConstants {
 
   private boolean jj_3R_87() {
     if (jj_3R_131()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_86() {
+    if (jj_3R_90()) return true;
+    return false;
+  }
+
+  private boolean jj_3_29() {
+    if (jj_scan_token(LPAREN)) return true;
+    if (jj_3R_54()) return true;
+    if (jj_scan_token(LBRACKET)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_278() {
+    if (jj_3R_60()) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_295()) jj_scanpos = xsp;
+    return false;
+  }
+
+  private boolean jj_3R_85() {
+    if (jj_scan_token(CLASS)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_51() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_85()) {
+    jj_scanpos = xsp;
+    if (jj_scan_token(41)) return true;
+    }
+    if (jj_scan_token(IDENTIFIER)) return true;
+    xsp = jj_scanpos;
+    if (jj_3R_86()) jj_scanpos = xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_87()) jj_scanpos = xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_88()) jj_scanpos = xsp;
+    if (jj_3R_89()) return true;
+    xsp = jj_scanpos;
+    if (jj_3_4()) jj_scanpos = xsp;
+    return false;
+  }
+
+  private boolean jj_3R_105() {
+    if (jj_scan_token(LPAREN)) return true;
+    if (jj_3R_54()) return true;
+    if (jj_scan_token(RPAREN)) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_scan_token(91)) {
+    jj_scanpos = xsp;
+    if (jj_scan_token(90)) {
+    jj_scanpos = xsp;
+    if (jj_scan_token(78)) {
+    jj_scanpos = xsp;
+    if (jj_scan_token(75)) {
+    jj_scanpos = xsp;
+    if (jj_scan_token(57)) {
+    jj_scanpos = xsp;
+    if (jj_scan_token(54)) {
+    jj_scanpos = xsp;
+    if (jj_scan_token(44)) {
+    jj_scanpos = xsp;
+    if (jj_3R_148()) return true;
+    }
+    }
+    }
+    }
+    }
+    }
+    }
     return false;
   }
 
